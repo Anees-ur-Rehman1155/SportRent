@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Booking confirmed — PlayRent</title>
+  <link rel="stylesheet" href="../../styles/globals.css">
+</head>
+<body>
+<main class="booking-wrap">
+  <div class="booking-icon">✅</div>
+  <h1>Booking confirmed.</h1>
+  <p class="bk-sub">Your gear is reserved. Check your dashboard for full details.</p>
+  <div class="receipt-card" id="receipt"><p style="color:#9ca3af">Loading...</p></div>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+    <a href="../dashboard/dashboard.html" class="btn btn-primary">View my rentals</a>
+    <a href="../catalog/catalog.html"     class="btn btn-outline">Rent more</a>
+  </div>
+</main>
+
+<script>var ROOT = "../../../";</script>
+<script src="../../config/env.js"></script>
+<script src="../../utils/constants.js"></script>
+<script src="../../utils/helpers.js"></script>
+<script src="../../services/authService.js"></script>
+<script src="../../services/apiClient.js"></script>
+<script src="../../components/layout/header.js"></script>
+<script>
+  mountNav();
+
+  var bid = new URLSearchParams(location.search).get("id");
+
+  // Try to get the rental from sessionStorage first (just created), then fall back to list
+  var cached = null;
+  try { cached = JSON.parse(sessionStorage.getItem("pr_last_rental")); } catch(e){}
+
+  function showReceipt(r) {
+    if (!r) { document.getElementById("receipt").innerHTML = "<p style='color:#9ca3af'>No booking found.</p>"; return; }
+    document.getElementById("receipt").innerHTML =
+      '<div class="receipt-row"><span class="r-lbl">Booking ID</span><span class="r-val">' + r.id + '</span></div>' +
+      '<div class="receipt-row"><span class="r-lbl">Equipment</span><span class="r-val">' + (r.equipmentEmoji||"") + " " + (r.equipmentName||"") + '</span></div>' +
+      '<div class="receipt-row"><span class="r-lbl">Qty × Days</span><span class="r-val">' + r.quantity + ' × ' + r.days + '</span></div>' +
+      '<div class="receipt-row"><span class="r-lbl">Start date</span><span class="r-val">' + r.startDate + '</span></div>' +
+      '<div class="receipt-row"><span class="r-lbl">Status</span><span class="r-val"><span class="badge badge-yellow">' + r.status + '</span></span></div>' +
+      '<div class="receipt-row receipt-total"><span class="r-lbl">Total</span><span class="r-val">$' + r.total + '</span></div>';
+  }
+
+  if (cached && cached.id === bid) {
+    showReceipt(cached);
+    sessionStorage.removeItem("pr_last_rental");
+  } else {
+    api.listRentals().then(function(all) {
+      var r = null;
+      for (var i = 0; i < all.length; i++) { if (String(all[i].id) === String(bid)) { r = all[i]; break; } }
+      showReceipt(r);
+    }).catch(function() {
+      document.getElementById("receipt").innerHTML = "<p style='color:#9ca3af'>Could not load booking details.</p>";
+    });
+  }
+</script>
+</body>
+</html>

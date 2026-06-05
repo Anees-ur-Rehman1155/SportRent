@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Equipment — PlayRent</title>
+  <link rel="stylesheet" href="../../styles/globals.css">
+</head>
+<body>
+<main class="detail-wrap" id="detailWrap">
+  <p style="color:#9ca3af;padding-top:60px">Loading...</p>
+</main>
+
+<script>var ROOT = "../../../";</script>
+<script src="../../config/env.js"></script>
+<script src="../../utils/constants.js"></script>
+<script src="../../utils/helpers.js"></script>
+<script src="../../services/authService.js"></script>
+<script src="../../services/apiClient.js"></script>
+<script src="../../components/layout/header.js"></script>
+<script>
+  mountNav("catalog");
+
+  var eqId = new URLSearchParams(location.search).get("id");
+
+  api.getEquipment(eqId).then(function(eq) {
+    if (!eq) {
+      document.getElementById("detailWrap").innerHTML = '<p style="color:#9ca3af;padding-top:60px">Equipment not found.</p>';
+      return;
+    }
+
+    document.getElementById("detailWrap").innerHTML =
+      '<div class="detail-img">' + eq.emoji + '</div>' +
+      '<div class="detail-info">' +
+        '<span class="badge badge-green" style="margin-bottom:14px">' + eq.sport + '</span>' +
+        '<h1>' + eq.name + '</h1>' +
+        '<div class="detail-price">$' + eq.price + '<span> / day</span></div>' +
+        '<p class="detail-desc">' + eq.desc + '</p>' +
+        '<span class="badge ' + stockClass(eq.stock) + '">' + stockLabel(eq.stock) + '</span>' +
+        '<div class="book-form" style="margin-top:22px">' +
+          '<div class="field"><label>Quantity</label><input type="number" id="qty" min="1" max="' + eq.stock + '" value="1"></div>' +
+          '<div class="field"><label>Days</label><input type="number" id="days" min="1" max="30" value="3"></div>' +
+          '<div class="field"><label>Start date</label><input type="date" id="startDate"></div>' +
+          '<div class="totals-row"><span class="t-lbl">Total cost</span><span class="t-val" id="totalCost">$0</span></div>' +
+          '<button class="btn btn-primary btn-block btn-lg" id="bookBtn" style="margin-top:14px">Book now →</button>' +
+        '</div>' +
+      '</div>';
+
+    // Set default date
+    var today = todayString();
+    document.getElementById("startDate").value = today;
+    document.getElementById("startDate").min   = today;
+
+    function recalc() {
+      var q = Number(document.getElementById("qty").value)  || 0;
+      var d = Number(document.getElementById("days").value) || 0;
+      document.getElementById("totalCost").textContent = "$" + (q * d * eq.price);
+    }
+    document.getElementById("qty").oninput  = recalc;
+    document.getElementById("days").oninput = recalc;
+    recalc();
+
+    document.getElementById("bookBtn").onclick = function() {
+      var u = session.user();
+      if (!u) {
+        toast("Please sign in first","error");
+        setTimeout(function() { location.href = ROOT+"src/pages/auth/login.html?next="+encodeURIComponent(location.href); }, 800);
+        return;
+      }
+      var qty   = Number(document.getElementById("qty").value);
+      var days  = Number(document.getElementById("days").value);
+      var start = document.getElementById("startDate").value;
+      if (!start) { toast("Pick a start date","error"); return; }
+
+      api.createRental({
+        userId: u.id, userName: u.name,
+        equipmentId: eq.id, quantity: qty, days: days, startDate: start,
+        total: qty * days * eq.price
+      }).then(function(r) {
+        try { sessionStorage.setItem("pr_last_rental", JSON.stringify(r)); } catch(e){}
+        toast("Booking confirmed!");
+        setTimeout(function() { location.href = "../booking/booking.html?id=" + r.id; }, 600);
+      }).catch(function(e) { toast(e.message,"error"); });
+    };
+  });
+</script>
+</body>
+</html>

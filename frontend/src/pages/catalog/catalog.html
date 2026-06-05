@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Catalog — PlayRent</title>
+  <link rel="stylesheet" href="../../styles/globals.css">
+</head>
+<body>
+<main class="catalog-wrap">
+  <!-- Sidebar filters -->
+  <aside class="catalog-side">
+    <h4>Sport</h4>
+    <div class="filter-list" id="filterList"></div>
+  </aside>
+  <!-- Product grid -->
+  <div>
+    <div class="catalog-search">
+      <span>🔍</span>
+      <input type="text" id="searchInput" placeholder="Search equipment...">
+    </div>
+    <div class="product-grid" id="grid"></div>
+  </div>
+</main>
+
+<script>var ROOT = "../../../";</script>
+<script src="../../config/env.js"></script>
+<script src="../../utils/constants.js"></script>
+<script src="../../utils/helpers.js"></script>
+<script src="../../services/authService.js"></script>
+<script src="../../services/apiClient.js"></script>
+<script src="../../components/layout/header.js"></script>
+<script>
+  mountNav("catalog");
+
+  // Read ?sport= from URL (set when clicking sport cards on home page)
+  var params = new URLSearchParams(location.search);
+  var active = params.get("sport") || "All";
+  var q      = "";
+  var items  = [];
+
+  function render() {
+    // Filter buttons
+    var btns = "";
+    for (var i = 0; i < SPORTS_LIST.length; i++) {
+      var s = SPORTS_LIST[i];
+      btns += '<button data-s="' + s + '" class="' + (s===active?"active":"") + '">' + s + '</button>';
+    }
+    document.getElementById("filterList").innerHTML = btns;
+    document.querySelectorAll("#filterList button").forEach(function(b) {
+      b.onclick = function() { active = b.dataset.s; render(); };
+    });
+
+    // Filter items
+    var shown = items.filter(function(it) {
+      var ok = (active==="All" || it.sport===active);
+      if (q) ok = ok && it.name.toLowerCase().indexOf(q.toLowerCase()) >= 0;
+      return ok;
+    });
+
+    if (!shown.length) {
+      document.getElementById("grid").innerHTML =
+        '<p style="color:#9ca3af;grid-column:1/-1;padding:40px;text-align:center">No equipment found.</p>';
+      return;
+    }
+
+    var html = "";
+    for (var j = 0; j < shown.length; j++) {
+      var it = shown[j];
+      html += '<a href="../equipment/equipment.html?id=' + it.id + '" class="product-card">' +
+        '<div class="pc-img">' + it.emoji + '</div>' +
+        '<div class="pc-body">' +
+          '<h3>' + it.name + '</h3>' +
+          '<div class="pc-sport">' + it.sport + '</div>' +
+          '<div class="pc-foot">' +
+            '<span class="product-price">$' + it.price + '<span class="per-day"> /day</span></span>' +
+            '<span class="badge ' + stockClass(it.stock) + '">' + stockLabel(it.stock) + '</span>' +
+          '</div>' +
+        '</div>' +
+      '</a>';
+    }
+    document.getElementById("grid").innerHTML = html;
+  }
+
+  document.getElementById("searchInput").oninput = function(e) { q = e.target.value; render(); };
+
+  // Load from API (or mock)
+  api.listEquipment().then(function(data) { items = data; render(); });
+</script>
+</body>
+</html>

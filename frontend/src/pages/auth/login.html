@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sign in — PlayRent</title>
+  <link rel="stylesheet" href="../../styles/globals.css">
+</head>
+<body>
+<main class="auth-page">
+  <div class="auth-card">
+    <h1>Welcome back.</h1>
+    <p class="auth-sub">Sign in to continue renting.</p>
+    <div class="auth-demo">
+      <strong>Demo accounts:</strong><br>
+      demo@playrent.com / demo123 (Customer)<br>
+      staff4451@gmail.com / staff1155 (Staff)<br>
+      admin4451@gmail.com / admin1155 (Admin)
+    </div>
+    <div class="field"><label>Email</label><input type="email" id="email" placeholder="you@example.com"></div>
+    <div class="field"><label>Password</label><input type="password" id="pw" placeholder="••••••••"></div>
+    <button class="btn btn-primary btn-block btn-lg" id="loginBtn">Sign in →</button>
+    <p class="auth-foot">No account? <a href="register.html">Create one free</a></p>
+  </div>
+</main>
+
+<script>var ROOT = "../../../";</script>
+<script src="../../config/env.js"></script>
+<script src="../../utils/constants.js"></script>
+<script src="../../utils/helpers.js"></script>
+<script src="../../services/authService.js"></script>
+<script src="../../services/apiClient.js"></script>
+<script src="../../components/layout/header.js"></script>
+<script>
+  mountNav();
+
+  document.getElementById("loginBtn").onclick = function() {
+    var email = document.getElementById("email").value.trim();
+    var pw    = document.getElementById("pw").value;
+    if (!email || !pw) { toast("Please fill in all fields","error"); return; }
+
+    api.login(email, pw).then(function(r) {
+      session.set(r.token, r.user);
+      toast("Welcome back, " + r.user.name + "!");
+      var next = new URLSearchParams(location.search).get("next");
+      setTimeout(function() {
+        if (next) return location.href = next;
+        if (r.user.role === "ADMIN")  return location.href = ROOT + "src/pages/admin/admin.html";
+        if (r.user.role === "STAFF")  return location.href = ROOT + "src/pages/staff/staff.html";
+        location.href = ROOT + "src/pages/dashboard/dashboard.html";
+      }, 600);
+    }).catch(function(e) { toast(e.message, "error"); });
+  };
+
+  document.getElementById("pw").onkeydown = function(e) {
+    if (e.key === "Enter") document.getElementById("loginBtn").click();
+  };
+</script>
+</body>
+</html>

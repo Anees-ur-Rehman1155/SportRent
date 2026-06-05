@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PlayRent — Rent Sports Equipment Instantly</title>
+  <link rel="stylesheet" href="src/styles/globals.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SECTION 1 — Light hero (matches video top section exactly)
+══════════════════════════════════════════════════════════════ -->
+<section class="hero-section">
+  <div class="hero-inner">
+    <!-- Left column: headline + CTAs + stats -->
+    <div>
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        NEW SEASON · PREMIUM GEAR
+      </div>
+      <h1>Rent Sports Equipment<br><span class="cyan">Instantly</span></h1>
+      <p class="lead">Professional equipment for every sport. Browse, book and play — all in minutes.</p>
+      <div class="hero-btns">
+        <a href="src/pages/catalog/catalog.html" class="btn btn-dark btn-lg">Browse Equipment</a>
+        <a href="src/pages/catalog/catalog.html" class="btn btn-outline btn-lg">Rent Now →</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="val">6</div><div class="lbl">Sports</div></div>
+        <div class="hero-stat"><div class="val">120+</div><div class="lbl">Items</div></div>
+        <div class="hero-stat"><div class="val">24h</div><div class="lbl">Delivery</div></div>
+      </div>
+    </div>
+    <!-- Right column: main athlete photo -->
+    <div class="hero-img-col">
+      <img class="hero-athlete-img" src="src/assets/images/athlete-hero.png" alt="Athlete">
+    </div>
+  </div>
+  <!-- Scroll hint at bottom of hero -->
+  <div class="scroll-hint">
+    <span class="scroll-hint-arrow">↓</span> SCROLL TO EXPLORE EACH SPORT
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SECTION 2 — Dark scroll-story (6 sports, scroll-jacked)
+     scrollStory.js builds all panels + dot nav inside #scrollStoryWrapper
+══════════════════════════════════════════════════════════════ -->
+<div id="scrollStoryWrapper" class="scroll-story-wrapper"></div>
+
+<!-- Dot navigation — built by scrollStory.js, fixed to right edge -->
+<div class="dot-nav hidden" id="dotNav"></div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SECTION 3 — CTA banner (dark teal/green, "Ready To Play?")
+══════════════════════════════════════════════════════════════ -->
+<section class="cta-section">
+  <h2>Ready To Play?</h2>
+  <p>Your gear is one tap away. Join thousands of players renting<br>professional equipment every week.</p>
+  <a href="src/pages/auth/register.html" class="cta-btn">Start Renting Today</a>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     FOOTER — white, matches video exactly
+══════════════════════════════════════════════════════════════ -->
+<footer class="pr-footer">
+  <div>
+    <div class="pr-footer-brand">PlayRent</div>
+    <div class="pr-footer-sub">Rent professional sports equipment, on demand.</div>
+  </div>
+  <div class="pr-footer-copy">© 2026 PlayRent. A university project showcase.</div>
+</footer>
+
+<!-- ══ Scripts ══ -->
+<script>var ROOT = "";</script>
+<script src="src/config/env.js"></script>
+<script src="src/utils/constants.js"></script>
+<script src="src/utils/helpers.js"></script>
+<script src="src/services/authService.js"></script>
+<script src="src/services/apiClient.js"></script>
+<script src="src/components/layout/header.js"></script>
+<script src="src/components/ui/scrollStory.js"></script>
+<script>
+  mountNav("home");    // inject nav bar
+  initScrollStory();   // build 6 sport sections + dot nav
+</script>
+
+</body>
+</html>

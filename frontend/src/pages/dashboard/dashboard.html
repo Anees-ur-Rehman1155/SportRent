@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>My Rentals — PlayRent</title>
+  <link rel="stylesheet" href="../../styles/globals.css">
+</head>
+<body>
+<div class="dash-wrap">
+  <aside class="dash-side">
+    <h5>Customer</h5>
+    <nav class="dash-nav">
+      <a href="dashboard.html" class="active">📊 My Rentals</a>
+      <a href="../catalog/catalog.html">🛍️ Browse</a>
+      <a href="#" id="signOut">🚪 Sign out</a>
+    </nav>
+  </aside>
+  <main class="dash-main">
+    <div class="dash-head">
+      <div><h1>My Rentals</h1><p id="greeting">Loading...</p></div>
+      <a href="../catalog/catalog.html" class="btn btn-primary">+ New rental</a>
+    </div>
+    <div class="stats-row" id="stats"></div>
+    <div class="table-card">
+      <div class="tc-head"><h3>Rental history</h3></div>
+      <table>
+        <thead><tr><th>Equipment</th><th>Qty × Days</th><th>Start</th><th>Total</th><th>Status</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script>var ROOT = "../../../";</script>
+<script src="../../config/env.js"></script>
+<script src="../../utils/constants.js"></script>
+<script src="../../utils/helpers.js"></script>
+<script src="../../services/authService.js"></script>
+<script src="../../services/apiClient.js"></script>
+<script src="../../components/layout/header.js"></script>
+<script>
+  mountNav("myrentals");
+  var u = session.require();
+  if (u) {
+    document.getElementById("greeting").textContent = "Welcome back, " + u.name;
+    document.getElementById("signOut").onclick = function() { session.clear(); location.href = ROOT+"index.html"; };
+
+    api.listRentals().then(function(all) {
+      var mine    = all.filter(function(r){ return String(r.userId) === String(u.id); });
+      var active  = mine.filter(function(r){ return r.status==="APPROVED"||r.status==="PENDING"; }).length;
+      var spent   = mine.reduce(function(s,r){ return s+(r.total||0); }, 0);
+
+      document.getElementById("stats").innerHTML =
+        '<div class="stat-card"><div class="s-lbl">Total rentals</div><div class="s-val">'+mine.length+'</div></div>' +
+        '<div class="stat-card"><div class="s-lbl">Active</div><div class="s-val">'+active+'</div></div>' +
+        '<div class="stat-card"><div class="s-lbl">Total spent</div><div class="s-val">$'+spent+'</div></div>' +
+        '<div class="stat-card"><div class="s-lbl">Account</div><div class="s-val">⭐</div><div class="s-note">Member</div></div>';
+
+      if (!mine.length) {
+        document.getElementById("tbody").innerHTML =
+          '<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:40px">No rentals yet. <a href="../catalog/catalog.html" style="color:#6366f1">Browse equipment →</a></td></tr>';
+        return;
+      }
+      var rows = "";
+      for (var i=0; i<mine.length; i++) {
+        var r = mine[i];
+        rows += '<tr><td>'+(r.equipmentEmoji||"")+" "+(r.equipmentName||"")+'</td>' +
+          '<td>'+r.quantity+'×'+r.days+'d</td><td>'+r.startDate+'</td><td>$'+r.total+'</td>' +
+          '<td><span class="badge '+statusClass(r.status)+'">'+r.status+'</span></td></tr>';
+      }
+      document.getElementById("tbody").innerHTML = rows;
+    });
+  }
+</script>
+</body>
+</html>

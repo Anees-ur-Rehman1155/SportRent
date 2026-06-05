@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Staff — PlayRent</title>
+  <link rel="stylesheet" href="../../styles/globals.css">
+</head>
+<body>
+<div class="dash-wrap">
+  <aside class="dash-side">
+    <h5>Staff Portal</h5>
+    <nav class="dash-nav">
+      <a href="staff.html" class="active">📋 Rental requests</a>
+      <a href="#" id="signOut">🚪 Sign out</a>
+    </nav>
+  </aside>
+  <main class="dash-main">
+    <div class="dash-head">
+      <div><h1>Rental Requests</h1><p>Approve, reject or mark returned.</p></div>
+    </div>
+    <div class="stats-row" id="stats"></div>
+    <div class="table-card">
+      <div class="tc-head"><h3>All rentals</h3></div>
+      <table>
+        <thead><tr><th>Customer</th><th>Equipment</th><th>Qty×Days</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script>var ROOT = "../../../";</script>
+<script src="../../config/env.js"></script>
+<script src="../../utils/constants.js"></script>
+<script src="../../utils/helpers.js"></script>
+<script src="../../services/authService.js"></script>
+<script src="../../services/apiClient.js"></script>
+<script src="../../components/layout/header.js"></script>
+<script>
+  mountNav("staff");
+  var u = session.require("STAFF");
+  if (u) {
+    document.getElementById("signOut").onclick = function() { session.clear(); location.href = ROOT+"index.html"; };
+
+    function doUpdate(id, status) {
+      api.updateRental(id, {status:status}).then(function() { toast("Updated to "+status); load(); })
+        .catch(function(e){ toast(e.message,"error"); });
+    }
+    window.doUpdate = doUpdate;
+
+    function load() {
+      api.listRentals().then(function(all) {
+        var pending  = all.filter(function(r){ return r.status==="PENDING";  }).length;
+        var approved = all.filter(function(r){ return r.status==="APPROVED"; }).length;
+        var returned = all.filter(function(r){ return r.status==="RETURNED"; }).length;
+
+        document.getElementById("stats").innerHTML =
+          '<div class="stat-card"><div class="s-lbl">Pending</div><div class="s-val">'+pending+'</div></div>' +
+          '<div class="stat-card"><div class="s-lbl">Approved</div><div class="s-val">'+approved+'</div></div>' +
+          '<div class="stat-card"><div class="s-lbl">Returned</div><div class="s-val">'+returned+'</div></div>' +
+          '<div class="stat-card"><div class="s-lbl">Total</div><div class="s-val">'+all.length+'</div></div>';
+
+        if (!all.length) {
+          document.getElementById("tbody").innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:40px">No rentals yet.</td></tr>';
+          return;
+        }
+        var rows = "";
+        for (var i=0; i<all.length; i++) {
+          var r = all[i];
+          var btns = "";
+          if (r.status==="PENDING") {
+            btns = '<button class="btn btn-primary" style="padding:6px 12px;font-size:12px" onclick="doUpdate(\''+r.id+'\',\'APPROVED\')">Approve</button> ' +
+                   '<button class="btn btn-outline" style="padding:6px 12px;font-size:12px" onclick="doUpdate(\''+r.id+'\',\'REJECTED\')">Reject</button>';
+          } else if (r.status==="APPROVED") {
+            btns = '<button class="btn btn-outline" style="padding:6px 12px;font-size:12px" onclick="doUpdate(\''+r.id+'\',\'RETURNED\')">Mark returned</button>';
+          }
+          rows += '<tr><td>'+(r.userName||r.userId)+'</td><td>'+(r.equipmentEmoji||"")+" "+(r.equipmentName||"")+'</td>' +
+            '<td>'+r.quantity+'×'+r.days+'d</td><td>$'+r.total+'</td>' +
+            '<td><span class="badge '+statusClass(r.status)+'">'+r.status+'</span></td>' +
+            '<td style="display:flex;gap:6px">'+btns+'</td></tr>';
+        }
+        document.getElementById("tbody").innerHTML = rows;
+      });
+    }
+    load();
+  }
+</script>
+</body>
+</html>
