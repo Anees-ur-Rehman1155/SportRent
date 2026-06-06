@@ -47,7 +47,7 @@
         if (next) return location.href = next;
         if (r.user.role === "ADMIN")  return location.href = ROOT + "src/pages/admin/admin.html";
         if (r.user.role === "STAFF")  return location.href = ROOT + "src/pages/staff/staff.html";
-        location.href = ROOT + "src/pages/dashboard/dashboard.html";
+        location.href = ROOT + "index.html";
       }, 600);
     }).catch(function(e) { toast(e.message, "error"); });
   };

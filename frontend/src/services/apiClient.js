@@ -33,6 +33,16 @@ function _mock(path, opts) {
     var eid = path.split("/").pop();
     return MOCK_EQUIPMENT.filter(function(e){ return e.id===eid; })[0] || null;
   }
+  if (path.indexOf("/equipment/") === 0 && method === "PUT") {
+    var eid = path.split("/")[2];
+    var eq = MOCK_EQUIPMENT.filter(function(e){ return e.id===eid; })[0];
+    if (eq) {
+      if (body.price !== undefined) eq.price = Number(body.price);
+      if (body.stock !== undefined) eq.stock = Number(body.stock);
+      if (window.saveMockEquipment) window.saveMockEquipment();
+    }
+    return eq;
+  }
   if (path === "/rentals" && method === "GET") return _mockRentals;
   if (path === "/rentals" && method === "POST") {
     var eq = MOCK_EQUIPMENT.filter(function(e){ return e.id===body.equipmentId; })[0];
@@ -91,6 +101,7 @@ var api = {
   register:      function(name,email,pw) { return _call("/auth/register", {method:"POST",body:JSON.stringify({name:name,email:email,password:pw})}); },
   listEquipment: function()              { return _call("/equipment"); },
   getEquipment:  function(id)            { return _call("/equipment/"+id); },
+  updateEquipment: function(id,patch)    { return _call("/equipment/"+id, {method:"PUT", body:JSON.stringify(patch)}); },
   listRentals:   function()              { return _call("/rentals"); },
   createRental:  function(data)          { return _call("/rentals",      {method:"POST",body:JSON.stringify(data)}); },
   updateRental:  function(id,patch)      { return _call("/rentals/"+id,  {method:"PUT", body:JSON.stringify(patch)}); }

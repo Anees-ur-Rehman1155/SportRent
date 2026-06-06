@@ -6,26 +6,60 @@
   <title>Staff — PlayRent</title>
   <link rel="stylesheet" href="../../styles/globals.css">
 </head>
-<body>
+<body class="staff-theme">
 <div class="dash-wrap">
   <aside class="dash-side">
     <h5>Staff Portal</h5>
-    <nav class="dash-nav">
-      <a href="staff.html" class="active">📋 Rental requests</a>
-      <a href="#" id="signOut">🚪 Sign out</a>
+    <nav class="dash-nav" style="margin-bottom: 24px">
+      <a href="staff.html" id="tabRequests" class="active">Rental requests</a>
+      <a href="#" id="signOut">Sign out</a>
     </nav>
+    
+    <!-- Low Stock Warnings widget -->
+    <div class="low-stock-panel">
+      <h3>Low Stock Alerts</h3>
+      <div id="lowStockAlerts"><p style="color:#6b7280; font-size:12px">Loading stock status...</p></div>
+    </div>
   </aside>
+  
   <main class="dash-main">
     <div class="dash-head">
       <div><h1>Rental Requests</h1><p>Approve, reject or mark returned.</p></div>
     </div>
+    
     <div class="stats-row" id="stats"></div>
+    
+    <!-- Search and Status filters widget -->
+    <div style="margin-bottom: 28px; display:flex; gap:16px; flex-direction:column">
+      <input type="text" id="staffSearch" placeholder="Search requests by customer name or item..." class="staff-search-input">
+      <div class="filter-btn-group" id="filterBtnGroup">
+        <button class="active" data-status="ALL">All Requests</button>
+        <button data-status="PENDING">Pending</button>
+        <button data-status="APPROVED">Approved</button>
+        <button data-status="RETURNED">Returned</button>
+        <button data-status="REJECTED">Rejected</button>
+      </div>
+    </div>
+
     <div class="table-card">
       <div class="tc-head"><h3>All rentals</h3></div>
-      <table>
-        <thead><tr><th>Customer</th><th>Equipment</th><th>Qty×Days</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody id="tbody"></tbody>
-      </table>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Equipment</th>
+              <th>Qty×Days</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:20px">Loading requests...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
 </div>
@@ -38,49 +72,128 @@
 <script src="../../services/apiClient.js"></script>
 <script src="../../components/layout/header.js"></script>
 <script>
-  mountNav("staff");
+  mountNav("staff", true);
   var u = session.require("STAFF");
   if (u) {
+    document.getElementById("tabRequests").innerHTML = getIcon('rentals', 16) + ' Rental requests';
+    document.getElementById("signOut").innerHTML = getIcon('signout', 16) + ' Sign out';
+
     document.getElementById("signOut").onclick = function() { session.clear(); location.href = ROOT+"index.html"; };
 
-    function doUpdate(id, status) {
-      api.updateRental(id, {status:status}).then(function() { toast("Updated to "+status); load(); })
-        .catch(function(e){ toast(e.message,"error"); });
+    var allRentals = [];
+    var allEquipment = [];
+    var activeFilter = "ALL";
+    var searchQuery = "";
+
+    function doUpdate(id, status, btnEl) {
+      var row = btnEl ? btnEl.closest("tr") : null;
+      if (row) {
+        if (status === "APPROVED") row.classList.add("action-approved");
+        if (status === "REJECTED") row.classList.add("action-rejected");
+      }
+      setTimeout(function() {
+        api.updateRental(id, {status:status}).then(function() {
+          toast("Updated to " + status);
+          load();
+        }).catch(function(e) {
+          if (row) row.classList.remove("action-approved", "action-rejected");
+          toast(e.message, "error");
+        });
+      }, 400);
     }
     window.doUpdate = doUpdate;
 
+    // Filter Buttons binding
+    document.querySelectorAll("#filterBtnGroup button").forEach(function(btn) {
+      btn.onclick = function() {
+        document.querySelectorAll("#filterBtnGroup button").forEach(function(b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        activeFilter = btn.dataset.status;
+        renderRequestsTable();
+      };
+    });
+
+    // Search bar binding
+    document.getElementById("staffSearch").oninput = function(e) {
+      searchQuery = e.target.value;
+      renderRequestsTable();
+    };
+
+    function renderStats() {
+      var pending  = allRentals.filter(function(r){ return r.status==="PENDING";  }).length;
+      var approved = allRentals.filter(function(r){ return r.status==="APPROVED"; }).length;
+      var returned = allRentals.filter(function(r){ return r.status==="RETURNED"; }).length;
+
+      document.getElementById("stats").innerHTML =
+        '<div class="stat-card"><div class="s-lbl">Pending</div><div class="s-val">'+pending+'</div></div>' +
+        '<div class="stat-card"><div class="s-lbl">Approved</div><div class="s-val">'+approved+'</div></div>' +
+        '<div class="stat-card"><div class="s-lbl">Returned</div><div class="s-val">'+returned+'</div></div>' +
+        '<div class="stat-card"><div class="s-lbl">Total</div><div class="s-val">'+allRentals.length+'</div></div>';
+    }
+
+    function renderLowStock() {
+      var low = allEquipment.filter(function(e) { return e.stock < 6; });
+      if (!low.length) {
+        document.getElementById("lowStockAlerts").innerHTML = '<p style="color:#6b7280; font-size:12px">All stock healthy.</p>';
+        return;
+      }
+      var html = "";
+      for (var i = 0; i < low.length; i++) {
+        var it = low[i];
+        html += '<div class="low-stock-row">' +
+          '<span style="display:inline-flex;align-items:center;gap:6px">' + getIcon(it.emoji, 16) + ' ' + it.name + '</span>' +
+          '<span class="badge ' + (it.stock < 3 ? 'badge-red' : 'badge-yellow') + '">' + it.stock + ' left</span>' +
+        '</div>';
+      }
+      document.getElementById("lowStockAlerts").innerHTML = html;
+    }
+
+    function renderRequestsTable() {
+      var filtered = allRentals.filter(function(r) {
+        var statusMatch = (activeFilter === "ALL" || r.status === activeFilter);
+        var cName = (r.userName || r.userId).toLowerCase();
+        var eqName = (r.equipmentName || "").toLowerCase();
+        var q = searchQuery.toLowerCase();
+        var searchMatch = cName.indexOf(q) >= 0 || eqName.indexOf(q) >= 0;
+        return statusMatch && searchMatch;
+      });
+
+      if (!filtered.length) {
+        document.getElementById("tbody").innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:40px">No matching rental requests found.</td></tr>';
+        return;
+      }
+      
+      var rows = "";
+      for (var i = 0; i < filtered.length; i++) {
+        var r = filtered[i];
+        var btns = "";
+        if (r.status === "PENDING") {
+          btns = '<button class="btn btn-primary" style="padding:6px 12px;font-size:12px;border-radius:8px" onclick="doUpdate(\''+r.id+'\',\'APPROVED\',this)">Approve</button> ' +
+                 '<button class="btn btn-outline" style="padding:6px 12px;font-size:12px;border-radius:8px;border-color:#142419;color:#fff" onclick="doUpdate(\''+r.id+'\',\'REJECTED\',this)">Reject</button>';
+        } else if (r.status === "APPROVED") {
+          btns = '<button class="btn btn-outline" style="padding:6px 12px;font-size:12px;border-radius:8px;border-color:#142419;color:#fff" onclick="doUpdate(\''+r.id+'\',\'RETURNED\',this)">Mark returned</button>';
+        }
+        rows += '<tr>' +
+          '<td>' + (r.userName || r.userId) + '</td>' +
+          '<td style="display:inline-flex;align-items:center;gap:6px">' + getIcon(r.equipmentEmoji, 16) + ' ' + (r.equipmentName || "") + '</td>' +
+          '<td>' + r.quantity + '×' + r.days + 'd</td>' +
+          '<td>$' + r.total + '</td>' +
+          '<td><span class="badge ' + statusClass(r.status) + '">' + r.status + '</span></td>' +
+          '<td style="display:flex;gap:6px">' + btns + '</td>' +
+        '</tr>';
+      }
+      document.getElementById("tbody").innerHTML = rows;
+    }
+
     function load() {
-      api.listRentals().then(function(all) {
-        var pending  = all.filter(function(r){ return r.status==="PENDING";  }).length;
-        var approved = all.filter(function(r){ return r.status==="APPROVED"; }).length;
-        var returned = all.filter(function(r){ return r.status==="RETURNED"; }).length;
-
-        document.getElementById("stats").innerHTML =
-          '<div class="stat-card"><div class="s-lbl">Pending</div><div class="s-val">'+pending+'</div></div>' +
-          '<div class="stat-card"><div class="s-lbl">Approved</div><div class="s-val">'+approved+'</div></div>' +
-          '<div class="stat-card"><div class="s-lbl">Returned</div><div class="s-val">'+returned+'</div></div>' +
-          '<div class="stat-card"><div class="s-lbl">Total</div><div class="s-val">'+all.length+'</div></div>';
-
-        if (!all.length) {
-          document.getElementById("tbody").innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:40px">No rentals yet.</td></tr>';
-          return;
-        }
-        var rows = "";
-        for (var i=0; i<all.length; i++) {
-          var r = all[i];
-          var btns = "";
-          if (r.status==="PENDING") {
-            btns = '<button class="btn btn-primary" style="padding:6px 12px;font-size:12px" onclick="doUpdate(\''+r.id+'\',\'APPROVED\')">Approve</button> ' +
-                   '<button class="btn btn-outline" style="padding:6px 12px;font-size:12px" onclick="doUpdate(\''+r.id+'\',\'REJECTED\')">Reject</button>';
-          } else if (r.status==="APPROVED") {
-            btns = '<button class="btn btn-outline" style="padding:6px 12px;font-size:12px" onclick="doUpdate(\''+r.id+'\',\'RETURNED\')">Mark returned</button>';
-          }
-          rows += '<tr><td>'+(r.userName||r.userId)+'</td><td>'+(r.equipmentEmoji||"")+" "+(r.equipmentName||"")+'</td>' +
-            '<td>'+r.quantity+'×'+r.days+'d</td><td>$'+r.total+'</td>' +
-            '<td><span class="badge '+statusClass(r.status)+'">'+r.status+'</span></td>' +
-            '<td style="display:flex;gap:6px">'+btns+'</td></tr>';
-        }
-        document.getElementById("tbody").innerHTML = rows;
+      Promise.all([api.listRentals(), api.listEquipment()]).then(function(res) {
+        allRentals = res[0];
+        allEquipment = res[1];
+        renderStats();
+        renderLowStock();
+        renderRequestsTable();
+      }).catch(function(err) {
+        toast("Error loading data: " + err.message, "error");
       });
     }
     load();

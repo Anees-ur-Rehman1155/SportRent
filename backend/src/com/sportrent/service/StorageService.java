@@ -61,12 +61,31 @@ public class StorageService {
                 }
             }
 
-            // 3. Seed equipment if empty
+            // 3. Seed equipment if empty or contains legacy emojis
+            boolean needsReseed = false;
             try (ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM equipment")) {
                 if (rs.next() && rs.getInt(1) == 0) {
-                    System.out.println("[StorageService] Seeding default equipment...");
-                    writeAll("equipment.json", seedEquipment());
+                    needsReseed = true;
                 }
+            }
+            if (!needsReseed) {
+                try (ResultSet rs = stmt.executeQuery("SELECT emoji FROM equipment")) {
+                    while (rs.next()) {
+                        String em = rs.getString(1);
+                        if (em != null && (em.contains("⚽") || em.contains("👟") || em.contains("🏀") || em.contains("🏏") || 
+                                           em.contains("🎾") || em.contains("🏑") || em.contains("🪖") || em.contains("🏐") || 
+                                           em.contains("🥅") || em.length() == 1 || em.length() == 2)) {
+                            needsReseed = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (needsReseed) {
+                System.out.println("[StorageService] Re-seeding equipment (clean SVG string keys)...");
+                stmt.executeUpdate("DELETE FROM rentals");
+                stmt.executeUpdate("DELETE FROM equipment");
+                writeAll("equipment.json", seedEquipment());
             }
 
         } catch (SQLException e) {
@@ -193,18 +212,18 @@ public class StorageService {
     private List<Map<String, Object>> seedEquipment() {
         List<Map<String, Object>> e = new ArrayList<>();
         Object[][] data = {
-          {"1", "Pro Football", "Football", 8.0, "⚽", 12, "FIFA-quality match ball with hand-stitched panels for true flight and grip in all conditions."},
-          {"2", "Basketball Official", "Basketball", 10.0, "🏀", 8, "Indoor/outdoor composite leather basketball with deep channels for ultimate grip."},
-          {"3", "Cricket Bat — Willow", "Cricket", 15.0, "🏏", 5, "Grade-A English willow bat, hand-pressed for explosive power and clean strike."},
-          {"4", "Tennis Racket Pro", "Tennis", 12.0, "🎾", 10, "Graphite frame, 300g, 100 sq in head — balanced for control and power."},
-          {"5", "Hockey Stick Carbon", "Hockey", 18.0, "🏑", 6, "70% carbon composite field hockey stick with low-bow profile for drag flicks."},
-          {"6", "Volleyball Match", "Volleyball", 9.0, "🏐", 7, "FIVB-approved 18-panel microfiber volleyball with soft touch and true flight."},
-          {"7", "Football Boots", "Football", 14.0, "👟", 15, "Lightweight firm-ground boots with textured upper for precise touch and lockdown fit."},
-          {"8", "Cricket Pads", "Cricket", 11.0, "🛡️", 9, "Lightweight batting pads with HDF inserts and contoured knee roll for fast running."},
-          {"9", "Tennis Balls (3-pack)", "Tennis", 5.0, "🎾", 30, "Pressurized championship-grade tennis balls. Sold per tube of 3."},
-          {"10", "Basketball Hoop Portable", "Basketball", 25.0, "🏀", 3, "Height-adjustable portable hoop with weighted base. Great for driveways and gym days."},
-          {"11", "Hockey Helmet", "Hockey", 16.0, "🪖", 8, "Vented helmet with quick-release chin strap. CE certified protection."},
-          {"12", "Volleyball Net Pro", "Volleyball", 20.0, "🥅", 4, "Official 9.5m tournament net with steel cable and antenna kit."}
+          {"1", "Pro Match Football", "Football", 8.0, "football", 12, "FIFA-quality match ball with hand-stitched panels."},
+          {"2", "Football Boots", "Football", 14.0, "boots", 15, "Lightweight firm-ground boots for precise touch."},
+          {"3", "Indoor Game Ball", "Basketball", 7.0, "basketball", 18, "Composite leather basketball for indoor/outdoor use."},
+          {"4", "Portable Hoop", "Basketball", 25.0, "hoop", 3, "Height-adjustable hoop with weighted base."},
+          {"5", "English Willow Bat", "Cricket", 16.0, "bat", 9, "Grade-A English willow, hand-pressed for power."},
+          {"6", "Cricket Pads", "Cricket", 11.0, "pads", 8, "Lightweight batting pads with HDF inserts."},
+          {"7", "Tour Pro Racket", "Tennis", 12.0, "racket", 11, "Graphite frame, 300g — balanced for control and power."},
+          {"8", "Tennis Balls (3-pack)", "Tennis", 5.0, "tennis-ball", 30, "Pressurized championship-grade tennis balls. Tube of 3."},
+          {"9", "Composite Field Stick", "Hockey", 11.0, "hockey-stick", 14, "70% carbon composite stick with low-bow profile."},
+          {"10", "Hockey Helmet", "Hockey", 16.0, "helmet", 8, "Vented helmet with quick-release chin strap."},
+          {"11", "Tournament Volleyball", "Volleyball", 6.0, "volleyball", 15, "FIVB-approved 18-panel microfiber volleyball."},
+          {"12", "Volleyball Net Pro", "Volleyball", 20.0, "net", 4, "Official 9.5m tournament net with antenna kit."}
         };
         for (Object[] d : data) {
             Map<String, Object> m = new LinkedHashMap<>();

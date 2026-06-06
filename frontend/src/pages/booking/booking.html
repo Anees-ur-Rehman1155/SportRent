@@ -8,7 +8,7 @@
 </head>
 <body>
 <main class="booking-wrap">
-  <div class="booking-icon">✅</div>
+  <div class="booking-icon" id="bookingIcon"></div>
   <h1>Booking confirmed.</h1>
   <p class="bk-sub">Your gear is reserved. Check your dashboard for full details.</p>
   <div class="receipt-card" id="receipt"><p style="color:#9ca3af">Loading...</p></div>
@@ -27,6 +27,7 @@
 <script src="../../components/layout/header.js"></script>
 <script>
   mountNav();
+  document.getElementById("bookingIcon").innerHTML = getIcon('check', 72);
 
   var bid = new URLSearchParams(location.search).get("id");
 
@@ -38,7 +39,7 @@
     if (!r) { document.getElementById("receipt").innerHTML = "<p style='color:#9ca3af'>No booking found.</p>"; return; }
     document.getElementById("receipt").innerHTML =
       '<div class="receipt-row"><span class="r-lbl">Booking ID</span><span class="r-val">' + r.id + '</span></div>' +
-      '<div class="receipt-row"><span class="r-lbl">Equipment</span><span class="r-val">' + (r.equipmentEmoji||"") + " " + (r.equipmentName||"") + '</span></div>' +
+      '<div class="receipt-row"><span class="r-lbl">Equipment</span><span class="r-val" style="display:flex;align-items:center;gap:6px">' + getIcon(r.equipmentEmoji, 16) + ' ' + (r.equipmentName||"") + '</span></div>' +
       '<div class="receipt-row"><span class="r-lbl">Qty × Days</span><span class="r-val">' + r.quantity + ' × ' + r.days + '</span></div>' +
       '<div class="receipt-row"><span class="r-lbl">Start date</span><span class="r-val">' + r.startDate + '</span></div>' +
       '<div class="receipt-row"><span class="r-lbl">Status</span><span class="r-val"><span class="badge badge-yellow">' + r.status + '</span></span></div>' +

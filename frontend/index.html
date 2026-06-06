@@ -5,6 +5,22 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>PlayRent — Rent Sports Equipment Instantly</title>
   <link rel="stylesheet" href="src/styles/globals.css">
+  <script>
+    (function() {
+      try {
+        var user = JSON.parse(localStorage.getItem("pr_user"));
+        if (!user) {
+          window.location.href = "src/pages/auth/login.html";
+        } else if (user.role === "ADMIN") {
+          window.location.href = "src/pages/admin/admin.html";
+        } else if (user.role === "STAFF") {
+          window.location.href = "src/pages/staff/staff.html";
+        }
+      } catch (e) {
+        window.location.href = "src/pages/auth/login.html";
+      }
+    })();
+  </script>
 </head>
 <body>
 

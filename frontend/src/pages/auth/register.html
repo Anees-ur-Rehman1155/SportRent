@@ -39,7 +39,7 @@
     api.register(name, email, pw).then(function(r) {
       session.set(r.token, r.user);
       toast("Welcome to PlayRent!");
-      setTimeout(function() { location.href = ROOT + "src/pages/dashboard/dashboard.html"; }, 600);
+      setTimeout(function() { location.href = ROOT + "index.html"; }, 600);
     }).catch(function(e) { toast(e.message,"error"); });
   };
 </script>

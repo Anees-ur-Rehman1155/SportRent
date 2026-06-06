@@ -63,17 +63,23 @@ var SPORT_SECTIONS = [
 ];
 
 // Equipment catalog data (mock)
-var MOCK_EQUIPMENT = [
-  {id:"1",  name:"Pro Match Football",    sport:"Football",   price:8,  stock:12, emoji:"⚽", desc:"FIFA-quality match ball with hand-stitched panels."},
-  {id:"2",  name:"Football Boots",        sport:"Football",   price:14, stock:15, emoji:"👟", desc:"Lightweight firm-ground boots for precise touch."},
-  {id:"3",  name:"Indoor Game Ball",      sport:"Basketball", price:7,  stock:18, emoji:"🏀", desc:"Composite leather basketball for indoor/outdoor use."},
-  {id:"4",  name:"Portable Hoop",         sport:"Basketball", price:25, stock:3,  emoji:"🏀", desc:"Height-adjustable hoop with weighted base."},
-  {id:"5",  name:"English Willow Bat",    sport:"Cricket",    price:16, stock:9,  emoji:"🏏", desc:"Grade-A English willow, hand-pressed for power."},
-  {id:"6",  name:"Cricket Pads",          sport:"Cricket",    price:11, stock:8,  emoji:"🛡️", desc:"Lightweight batting pads with HDF inserts."},
-  {id:"7",  name:"Tour Pro Racket",       sport:"Tennis",     price:12, stock:11, emoji:"🎾", desc:"Graphite frame, 300g — balanced for control and power."},
-  {id:"8",  name:"Tennis Balls (3-pack)", sport:"Tennis",     price:5,  stock:30, emoji:"🎾", desc:"Pressurized championship-grade balls, tube of 3."},
-  {id:"9",  name:"Composite Field Stick", sport:"Hockey",     price:11, stock:14, emoji:"🏑", desc:"70% carbon composite stick with low-bow profile."},
-  {id:"10", name:"Hockey Helmet",         sport:"Hockey",     price:16, stock:8,  emoji:"🪖", desc:"Vented helmet with quick-release chin strap."},
-  {id:"11", name:"Tournament Volleyball", sport:"Volleyball", price:6,  stock:15, emoji:"🏐", desc:"FIVB-approved 18-panel microfiber volleyball."},
-  {id:"12", name:"Volleyball Net Pro",    sport:"Volleyball", price:20, stock:4,  emoji:"🥅", desc:"Official 9.5m tournament net with antenna kit."}
-];
+var MOCK_EQUIPMENT = JSON.parse(localStorage.getItem("pr_mock_equipment") || JSON.stringify([
+  {id:"1",  name:"Pro Match Football",    sport:"Football",   price:8,  stock:12, emoji:"football", desc:"FIFA-quality match ball with hand-stitched panels."},
+  {id:"2",  name:"Football Boots",        sport:"Football",   price:14, stock:15, emoji:"boots", desc:"Lightweight firm-ground boots for precise touch."},
+  {id:"3",  name:"Indoor Game Ball",      sport:"Basketball", price:7,  stock:18, emoji:"basketball", desc:"Composite leather basketball for indoor/outdoor use."},
+  {id:"4",  name:"Portable Hoop",         sport:"Basketball", price:25, stock:3,  emoji:"hoop", desc:"Height-adjustable hoop with weighted base."},
+  {id:"5",  name:"English Willow Bat",    sport:"Cricket",    price:16, stock:9,  emoji:"bat", desc:"Grade-A English willow, hand-pressed for power."},
+  {id:"6",  name:"Cricket Pads",          sport:"Cricket",    price:11, stock:8,  emoji:"pads", desc:"Lightweight batting pads with HDF inserts."},
+  {id:"7",  name:"Tour Pro Racket",       sport:"Tennis",     price:12, stock:11, emoji:"racket", desc:"Graphite frame, 300g — balanced for control and power."},
+  {id:"8",  name:"Tennis Balls (3-pack)", sport:"Tennis",     price:5,  stock:30, emoji:"tennis-ball", desc:"Pressurized championship-grade balls, tube of 3."},
+  {id:"9",  name:"Composite Field Stick", sport:"Hockey",     price:11, stock:14, emoji:"hockey", desc:"70% carbon composite stick with low-bow profile."},
+  {id:"10", name:"Hockey Helmet",         sport:"Hockey",     price:16, stock:8,  emoji:"helmet", desc:"Vented helmet with quick-release chin strap."},
+  {id:"11", name:"Tournament Volleyball", sport:"Volleyball", price:6,  stock:15, emoji:"volleyball", desc:"FIVB-approved 18-panel microfiber volleyball."},
+  {id:"12", name:"Volleyball Net Pro",    sport:"Volleyball", price:20, stock:4,  emoji:"net", desc:"Official 9.5m tournament net with antenna kit."}
+]));
+
+function saveMockEquipment() {
+  localStorage.setItem("pr_mock_equipment", JSON.stringify(MOCK_EQUIPMENT));
+}
+window.saveMockEquipment = saveMockEquipment;
+

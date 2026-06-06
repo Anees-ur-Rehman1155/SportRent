@@ -18,7 +18,7 @@ var session = {
     if (!u) { location.href = ROOT + "src/pages/auth/login.html"; return null; }
     if (role && u.role !== role && u.role !== "ADMIN") {
       toast("Access denied", "error");
-      setTimeout(function() { location.href = ROOT + "src/pages/dashboard/dashboard.html"; }, 800);
+      setTimeout(function() { location.href = ROOT + "index.html"; }, 800);
       return null;
     }
     return u;

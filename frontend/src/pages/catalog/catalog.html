@@ -16,7 +16,7 @@
   <!-- Product grid -->
   <div>
     <div class="catalog-search">
-      <span>🔍</span>
+      <span id="searchIcon"></span>
       <input type="text" id="searchInput" placeholder="Search equipment...">
     </div>
     <div class="product-grid" id="grid"></div>
@@ -32,6 +32,7 @@
 <script src="../../components/layout/header.js"></script>
 <script>
   mountNav("catalog");
+  document.getElementById("searchIcon").innerHTML = getIcon('search', 18);
 
   // Read ?sport= from URL (set when clicking sport cards on home page)
   var params = new URLSearchParams(location.search);
@@ -67,8 +68,9 @@
     var html = "";
     for (var j = 0; j < shown.length; j++) {
       var it = shown[j];
+      var imgSrc = ROOT + 'src/assets/images/eq_' + it.emoji + '.png';
       html += '<a href="../equipment/equipment.html?id=' + it.id + '" class="product-card">' +
-        '<div class="pc-img">' + it.emoji + '</div>' +
+        '<div class="pc-img"><img src="' + imgSrc + '" alt="' + it.name + '" style="max-height:80%; max-width:80%; object-fit:contain; filter:drop-shadow(0 6px 12px rgba(0,0,0,0.08))"></div>' +
         '<div class="pc-body">' +
           '<h3>' + it.name + '</h3>' +
           '<div class="pc-sport">' + it.sport + '</div>' +

@@ -11,9 +11,9 @@
   <aside class="dash-side">
     <h5>Customer</h5>
     <nav class="dash-nav">
-      <a href="dashboard.html" class="active">📊 My Rentals</a>
-      <a href="../catalog/catalog.html">🛍️ Browse</a>
-      <a href="#" id="signOut">🚪 Sign out</a>
+      <a href="dashboard.html" id="tabMyRentals" class="active">My Rentals</a>
+      <a href="../catalog/catalog.html" id="tabBrowse">Browse</a>
+      <a href="#" id="signOut">Sign out</a>
     </nav>
   </aside>
   <main class="dash-main">
@@ -44,6 +44,10 @@
   var u = session.require();
   if (u) {
     document.getElementById("greeting").textContent = "Welcome back, " + u.name;
+    document.getElementById("tabMyRentals").innerHTML = getIcon('dashboard', 16) + ' My Rentals';
+    document.getElementById("tabBrowse").innerHTML = getIcon('browse', 16) + ' Browse';
+    document.getElementById("signOut").innerHTML = getIcon('signout', 16) + ' Sign out';
+
     document.getElementById("signOut").onclick = function() { session.clear(); location.href = ROOT+"index.html"; };
 
     api.listRentals().then(function(all) {
@@ -55,7 +59,7 @@
         '<div class="stat-card"><div class="s-lbl">Total rentals</div><div class="s-val">'+mine.length+'</div></div>' +
         '<div class="stat-card"><div class="s-lbl">Active</div><div class="s-val">'+active+'</div></div>' +
         '<div class="stat-card"><div class="s-lbl">Total spent</div><div class="s-val">$'+spent+'</div></div>' +
-        '<div class="stat-card"><div class="s-lbl">Account</div><div class="s-val">⭐</div><div class="s-note">Member</div></div>';
+        '<div class="stat-card"><div class="s-lbl">Account</div><div class="s-val" style="display:flex;align-items:center;justify-content:center;height:38px">'+getIcon('star', 28)+'</div><div class="s-note">Member</div></div>';
 
       if (!mine.length) {
         document.getElementById("tbody").innerHTML =
@@ -65,7 +69,7 @@
       var rows = "";
       for (var i=0; i<mine.length; i++) {
         var r = mine[i];
-        rows += '<tr><td>'+(r.equipmentEmoji||"")+" "+(r.equipmentName||"")+'</td>' +
+        rows += '<tr><td style="display:flex;align-items:center;gap:6px">'+getIcon(r.equipmentEmoji, 16)+' '+(r.equipmentName||"")+'</td>' +
           '<td>'+r.quantity+'×'+r.days+'d</td><td>'+r.startDate+'</td><td>$'+r.total+'</td>' +
           '<td><span class="badge '+statusClass(r.status)+'">'+r.status+'</span></td></tr>';
       }
