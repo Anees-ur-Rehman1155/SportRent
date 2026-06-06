@@ -63,6 +63,21 @@ function _mock(path, opts) {
     if (rr) { Object.keys(body).forEach(function(k){ rr[k]=body[k]; }); _saveRentals(); }
     return rr;
   }
+  if (path === "/users" && method === "GET") {
+    return _mockUsers.map(function(u){ return {id:u.id, name:u.name, email:u.email, role:u.role}; });
+  }
+  if (path.indexOf("/users/") === 0 && method === "DELETE") {
+    var uid = path.split("/")[2];
+    var beforeLen = _mockUsers.length;
+    _mockUsers = _mockUsers.filter(function(x){ return x.id !== uid; });
+    if (_mockUsers.length < beforeLen) {
+      _saveUsers();
+      _mockRentals = _mockRentals.filter(function(r){ return r.userId !== uid; });
+      _saveRentals();
+      return { success: true };
+    }
+    throw new Error("User not found");
+  }
   return null;
 }
 
@@ -104,5 +119,7 @@ var api = {
   updateEquipment: function(id,patch)    { return _call("/equipment/"+id, {method:"PUT", body:JSON.stringify(patch)}); },
   listRentals:   function()              { return _call("/rentals"); },
   createRental:  function(data)          { return _call("/rentals",      {method:"POST",body:JSON.stringify(data)}); },
-  updateRental:  function(id,patch)      { return _call("/rentals/"+id,  {method:"PUT", body:JSON.stringify(patch)}); }
+  updateRental:  function(id,patch)      { return _call("/rentals/"+id,  {method:"PUT", body:JSON.stringify(patch)}); },
+  listUsers:     function()              { return _call("/users"); },
+  deleteUser:    function(id)            { return _call("/users/"+id,    {method:"DELETE"}); }
 };

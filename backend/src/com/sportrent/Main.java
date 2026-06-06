@@ -14,6 +14,7 @@ public class Main {
         server.createContext("/api/auth/", new AuthHandler(storage));
         server.createContext("/api/equipment", new EquipmentHandler(storage));
         server.createContext("/api/rentals", new RentalHandler(storage));
+        server.createContext("/api/users", new UserHandler(storage));
         server.createContext("/", new RootHandler());
         server.setExecutor(java.util.concurrent.Executors.newFixedThreadPool(8));
         server.start();

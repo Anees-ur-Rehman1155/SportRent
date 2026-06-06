@@ -40,6 +40,7 @@ javac -encoding UTF-8 -cp "lib\mysql-connector-j-8.3.0.jar" -d out ^
   src\com\sportrent\handler\EquipmentHandler.java ^
   src\com\sportrent\handler\RentalHandler.java ^
   src\com\sportrent\handler\RootHandler.java ^
+  src\com\sportrent\handler\UserHandler.java ^
   src\com\sportrent\service\DatabaseConnection.java ^
   src\com\sportrent\service\Http.java ^
   src\com\sportrent\service\Json.java ^
