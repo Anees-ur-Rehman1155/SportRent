@@ -22,6 +22,26 @@
     <button class="btn btn-primary btn-block btn-lg" id="loginBtn">Sign in →</button>
     <p class="auth-foot">No account? <a href="register.html">Create one free</a></p>
   </div>
+
+  <!-- Fullscreen Video Overlay -->
+  <div id="videoContainer" class="video-overlay">
+    <video id="loginVideo" src="../../assets/videos/Athlete_penalty_kick_night_stadium_202606110952.mp4" playsinline></video>
+    <button id="skipBtn" class="skip-video-btn">Skip Video ✕</button>
+  </div>
+
+  <!-- Fullscreen Welcome Overlay -->
+  <div id="welcomeContainer" class="welcome-overlay">
+    <div class="welcome-card">
+      <div class="welcome-avatar-glow">
+        <span class="welcome-icon">⚡</span>
+      </div>
+      <h1 id="welcomeUser">Welcome back!</h1>
+      <p class="welcome-sub">Preparing your professional sports experience...</p>
+      <div class="welcome-loader">
+        <div class="welcome-loader-progress"></div>
+      </div>
+    </div>
+  </div>
 </main>
 
 <script>var ROOT = "../../../";</script>
@@ -41,14 +61,69 @@
 
     api.login(email, pw).then(function(r) {
       session.set(r.token, r.user);
-      toast("Welcome back, " + r.user.name + "!");
+      
+      // If role is ADMIN or STAFF, redirect immediately
+      if (r.user.role === "ADMIN" || r.user.role === "STAFF") {
+        toast("Welcome back, " + r.user.name + "!");
+        var next = new URLSearchParams(location.search).get("next");
+        setTimeout(function() {
+          if (next) return location.href = next;
+          if (r.user.role === "ADMIN")  return location.href = ROOT + "src/pages/admin/admin.html";
+          if (r.user.role === "STAFF")  return location.href = ROOT + "src/pages/staff/staff.html";
+        }, 600);
+        return;
+      }
+
+      // For customer role, start the video and welcome transition
       var next = new URLSearchParams(location.search).get("next");
-      setTimeout(function() {
-        if (next) return location.href = next;
-        if (r.user.role === "ADMIN")  return location.href = ROOT + "src/pages/admin/admin.html";
-        if (r.user.role === "STAFF")  return location.href = ROOT + "src/pages/staff/staff.html";
-        location.href = ROOT + "index.html";
-      }, 600);
+      
+      // Hide the navbar and login card/background
+      var nav = document.getElementById("prNav");
+      if (nav) nav.style.display = "none";
+      
+      var mainCard = document.querySelector(".auth-card");
+      if (mainCard) mainCard.style.display = "none";
+      
+      var authPage = document.querySelector(".auth-page");
+      if (authPage) authPage.style.background = "#000"; // Pure black for seamless video playing
+
+      // Play video
+      var vc = document.getElementById("videoContainer");
+      var vid = document.getElementById("loginVideo");
+      vc.classList.add("show");
+      
+      var playPromise = vid.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(function(error) {
+          // Fallback if browser blocks audio autoplay
+          vid.muted = true;
+          vid.play();
+        });
+      }
+
+      var transitioned = false;
+      function transitionToWelcome() {
+        if (transitioned) return;
+        transitioned = true;
+        
+        vid.pause();
+        vc.classList.remove("show");
+        
+        // Show welcome overlay
+        var wc = document.getElementById("welcomeContainer");
+        document.getElementById("welcomeUser").textContent = "Welcome back, " + r.user.name + "!";
+        wc.classList.add("show");
+        
+        // Wait 2.5 seconds (almost 2-3 seconds) and redirect to customer page
+        setTimeout(function() {
+          if (next) return location.href = next;
+          location.href = ROOT + "index.html";
+        }, 2500);
+      }
+
+      vid.onended = transitionToWelcome;
+      document.getElementById("skipBtn").onclick = transitionToWelcome;
+
     }).catch(function(e) { toast(e.message, "error"); });
   };
 

@@ -3,8 +3,23 @@
 ## Quick Start
 
 ### Prerequisites
-- Java JDK 17+ ([download](https://adoptium.net))
+- **Java JDK 17+** ([download](https://adoptium.net))
+- **MySQL Database Server** (running locally on port `3306`)
 - Any modern browser
+
+### Database Setup & Configuration
+
+The application uses MySQL to store users, equipment catalog, and rental history.
+
+1. **Start MySQL Server** on your machine.
+2. **Configure Connection Properties**: Open [backend/db.properties](file:///c:/Users/Anees/Desktop/final%20project/playrent_fixed/backend/db.properties) and update the credentials to match your MySQL database setup:
+   ```properties
+   db.url=jdbc:mysql://localhost:3306/playrent_db
+   db.user=root
+   db.password=YOUR_MYSQL_PASSWORD_HERE
+   ```
+3. **Database Initialization**: The backend is configured to automatically detect if `playrent_db` exists, create it, and seed the tables with default users and equipment catalog upon launch.
+   > *Optional:* If you want to manual initialize the tables, you can run the SQL script located at [backend/playrent_schema.sql](file:///c:/Users/Anees/Desktop/final%20project/playrent_fixed/backend/playrent_schema.sql).
 
 ### Run the Backend
 
